@@ -4,6 +4,8 @@ import android.animation.Animator;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
+import android.media.AudioAttributes;
+import android.media.AudioManager;
 import android.media.SoundPool;
 import android.os.Handler;
 import android.preference.PreferenceFragment;
@@ -23,6 +25,7 @@ import android.support.v7.app.AppCompatActivity;
 
 import com.ngtkn.reactiontimegame.R;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Random;
@@ -75,9 +78,10 @@ public class ReflexView extends View {
     private static final int MISS_SOUND_ID = 2;
     private static final int DISAPPEAR_SOUND_ID = 3;
     private static final int SOUND_QUALITY = 100;
+    private static final int SOUND_PRIORITY = 1;
     private static final int MAX_STREAMS = 4;
 
-    private SoundPool soundPool;
+    private SoundPool.Builder soundPool;
     private int volume;
     private Map<Integer, Integer> soundMap;
 
@@ -110,7 +114,29 @@ public class ReflexView extends View {
     }
 
     private void intializeSoundEffects(Context context){
-        
+
+        // set the audio attributes
+        AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                .setUsage(AudioAttributes.USAGE_GAME)
+                .build();
+
+        // make new soundpool with attributes
+        soundPool = new SoundPool.Builder();
+        soundPool.setMaxStreams(MAX_STREAMS)
+                .setAudioAttributes(audioAttributes)
+                .build();
+
+        // set the volume
+        AudioManager manager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+        volume = manager.getStreamVolume(AudioManager.STREAM_MUSIC);
+
+        // create a sound map
+        soundMap = new HashMap<Integer, Integer>();
+        soundMap.put(HIT_SOUND_ID, soundPool.build().load(context, R.raw.hit, SOUND_PRIORITY);
+        soundMap.put(MISS_SOUND_ID, soundPool.build().load(context, R.raw.miss, SOUND_PRIORITY);
+        soundMap.put(DISAPPEAR_SOUND_ID, soundPool.build().load(context, R.raw.disappear, SOUND_PRIORITY);
+
     }
 
     // update the labels in view
