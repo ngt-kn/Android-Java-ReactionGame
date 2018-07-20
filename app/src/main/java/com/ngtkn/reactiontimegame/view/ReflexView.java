@@ -9,8 +9,11 @@ import android.os.Handler;
 import android.preference.PreferenceFragment;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -29,7 +32,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class ReflexView extends View {
 
     // Static instance variables
-    private static final string HIGH_SCORE = "HIGH_SCORE";
+    private static final String HIGH_SCORE = "HIGH_SCORE";
     private SharedPreferences preferences;
 
     // Vars
@@ -83,7 +86,7 @@ public class ReflexView extends View {
                       RelativeLayout parentLayout) {
         super(context);
 
-        preferences - SharedPreferences;
+        preferences = sharedPreferences;
         highScore = sharedPreferences.getInt(HIGH_SCORE, 0);
 
         // save resources for loading external vals
@@ -98,7 +101,7 @@ public class ReflexView extends View {
         currentScoreTextView = relativeLayout.findViewById(R.id.score_text);
         levelTextView = relativeLayout.findViewById(R.id.level_text_view);
 
-
+        addNewSpot();
     }
 
     @Override
@@ -109,10 +112,7 @@ public class ReflexView extends View {
 
     public void addNewSpot() {
 
-        int x = random.nextInt(viewWidth - SPOT_DIAMETER);
-        int y = random.nextInt(viewHeight - SPOT_DIAMETER);
-        int x2 = random.nextInt(viewWidth - SPOT_DIAMETER);
-        int y2 = random.nextInt(viewHeight - SPOT_DIAMETER);
+
 
         // create the circle
 
@@ -120,13 +120,47 @@ public class ReflexView extends View {
 
         spots.add(spot);
         spot.setLayoutParams(new RelativeLayout.LayoutParams(SPOT_DIAMETER, SPOT_DIAMETER));
+
+        DisplayMetrics metrics = new DisplayMetrics();
+        WindowManager windowManager = (WindowManager) spot.getContext().getSystemService(Context.WINDOW_SERVICE);
+        windowManager.getDefaultDisplay().getMetrics(metrics);
+        int width = metrics.widthPixels;
+        int height = metrics.heightPixels;
+
+        int x = random.nextInt(width - SPOT_DIAMETER);
+        int y = random.nextInt(height - SPOT_DIAMETER);
+        int x2 = random.nextInt(width - SPOT_DIAMETER);
+        int y2 = random.nextInt(height - SPOT_DIAMETER);
+
         spot.setImageResource(random.nextInt(2) == 0 ? R.drawable.green_spot : R.drawable.red_spot);
 
         spot.setX(x);
         spot.setY(y);
 
+        spot.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                touchedSpot(spot);
+            }
+        });
+
         relativeLayout.addView(spot); // add the view(circle) to screen
 
+    }
+
+    private void touchedSpot(ImageView spot) {
+        // remove from view
+        relativeLayout.removeView(spot);
+        // remove from queue
+        spots.remove(spot);
+
+        level = 1;
+
+        // increment the number touched and score
+        ++spotsTouched;
+        score += 10 * level;
+
+        currentScoreTextView.setText("Score: " + score);
     }
 
 }
