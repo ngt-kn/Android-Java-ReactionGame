@@ -190,6 +190,75 @@ public class ReflexView extends View {
 
         relativeLayout.addView(spot); // add the view(circle) to screen
 
+        // add spot animation
+        spot.animate().x(x2).y(y2).scaleX(SCALE_X).scaleY(SCALE_Y)
+                .setDuration(animationTime).setListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animator) {
+                animators.add(animator); // save for later
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animator) {
+                animators.remove(animator);
+
+                if (!gamePaused && spots.contains(spot)) { // not touched
+                    missedSpot(spot);
+                }
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animator) {
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animator) {
+
+            }
+        });
+
+    }
+
+    private void missedSpot(ImageView spot) {
+        spots.remove(spot);
+        relativeLayout.removeView(spot);
+
+        if (gameOver) {
+            return;
+        }
+
+        if (soundPool != null) {
+            soundPool.build().play(DISAPPEAR_SOUND_ID, volume, volume, SOUND_PRIORITY, 0, 1f);
+        }
+
+        if (livesLinearLayout.getChildCount() == 0) {
+            gameOver = true;
+
+            // check high score and update if score is higher
+            if (score > highScore) {
+                SharedPreferences.Editor editor = preferences.edit();
+                editor.putInt(HIGH_SCORE, score);
+                editor.apply();
+
+                highScore = score;
+            }
+        }
+        cancelAnimations();
+    }
+
+    private void cancelAnimations() {
+        for (Animator animator : animators) {
+            animator.cancel();
+        }
+
+        // Remove remaining spots from screen
+        for (ImageView view : spots) {
+            relativeLayout.removeView(view);
+        }
+
+        spotHandler.removeCallbacks(addSpotRunnable);
+        animators.clear();
+        spots.clear();
     }
 
     private void touchedSpot(ImageView spot) {
