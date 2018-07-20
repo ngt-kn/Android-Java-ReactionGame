@@ -101,7 +101,6 @@ public class ReflexView extends View {
         currentScoreTextView = relativeLayout.findViewById(R.id.score_text);
         levelTextView = relativeLayout.findViewById(R.id.level_text_view);
 
-        addNewSpot();
     }
 
     @Override
@@ -109,6 +108,25 @@ public class ReflexView extends View {
         viewWidth = w;
         viewHeight = h;
     }
+
+    private void intializeSoundEffects(Context context){
+        
+    }
+
+    // update the labels in view
+    private void displayScores() {
+        highScoreTextView.setText(resources.getString(R.string.high_score) + " " + highScore);
+        currentScoreTextView.setText(resources.getString(R.string.score) + " " + score);
+        levelTextView.setText(resources.getString(R.string.level) + " " + level);
+    }
+
+    // runnable to add new spots to view
+    private Runnable addSpotRunnable = new Runnable() {
+        @Override
+        public void run() {
+            addNewSpot();
+        }
+    };
 
     public void addNewSpot() {
 
@@ -154,12 +172,11 @@ public class ReflexView extends View {
         // remove from queue
         spots.remove(spot);
 
-        level = 1;
-
         // increment the number touched and score
         ++spotsTouched;
         score += 10 * level;
 
+        // update score label
         currentScoreTextView.setText("Score: " + score);
     }
 
